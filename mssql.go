@@ -233,7 +233,7 @@ func (c *Conn) sendCommitRequest() error {
 			c.sess.log.Printf("Failed to send CommitXact with %v", err)
 		}
 		c.connectionGood = false
-		return fmt.Errorf("faild to send CommitXact: %v", err)
+		return connectionError("Failed to send CommitXact", err)
 	}
 	return nil
 }
@@ -260,7 +260,7 @@ func (c *Conn) sendRollbackRequest() error {
 			c.sess.log.Printf("Failed to send RollbackXact with %v", err)
 		}
 		c.connectionGood = false
-		return fmt.Errorf("failed to send RollbackXact: %v", err)
+		return connectionError("Failed to send RollbackXact", err)
 	}
 	return nil
 }
@@ -297,7 +297,7 @@ func (c *Conn) sendBeginRequest(ctx context.Context, tdsIsolation isoLevel) erro
 			c.sess.log.Printf("Failed to send BeginXact with %v", err)
 		}
 		c.connectionGood = false
-		return fmt.Errorf("failed to send BeginXact: %v", err)
+		return connectionError("Failed to send BeginXant", err)
 	}
 	return nil
 }
@@ -447,7 +447,7 @@ func (s *Stmt) sendQuery(args []namedValue) (err error) {
 				conn.sess.log.Printf("Failed to send SqlBatch with %v", err)
 			}
 			conn.connectionGood = false
-			return fmt.Errorf("failed to send SQL Batch: %v", err)
+			return connectionError("Failed to send SQL Batch", err)
 		}
 	} else {
 		proc := sp_ExecuteSql
@@ -472,7 +472,7 @@ func (s *Stmt) sendQuery(args []namedValue) (err error) {
 				conn.sess.log.Printf("Failed to send Rpc with %v", err)
 			}
 			conn.connectionGood = false
-			return fmt.Errorf("failed to send RPC: %v", err)
+			return connectionError("Failed to send RPC", err)
 		}
 	}
 	return
