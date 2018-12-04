@@ -72,6 +72,18 @@ func TestBulkcopy(t *testing.T) {
 		{"test_varbinary_max", bin, nil},
 		{"test_binary", []byte("1"), nil},
 		{"test_binary_16", bin, nil},
+
+		// money must be input as int64 to bulk insert, but scans back as a string on SELECT, so use `differentExpected` to provide
+		// different input and expected output
+
+		// First test: We do some byte shuffling for the money type, so make sure every byte is unique in the test.
+		{"test_money_1",
+			int64(-(0x01<<56 | 0x02<<48 | 0x03<<40 | 0x04<<32 | 0x05<<24 | 0x06<<16 | 0x07<<8 | 0x08)), // evaluates to 72623859790382856
+			[]byte("-7262385979038.2856")},
+		// maximum positive, minimum negative, and zero values
+		{"test_money_2", math.MaxInt64, []byte("922337203685477.5807")},
+		{"test_money_3", math.MinInt64, []byte("-922337203685477.5808")},
+		{"test_money_4", 0, []byte("0.0000")},
 	}
 
 	columns := make([]string, len(testValues))
@@ -253,6 +265,10 @@ func setupTable(ctx context.Context, t *testing.T, conn *sql.Conn, tableName str
 	[test_varbinary_max] VARBINARY(max) NOT NULL,
 	[test_binary] BINARY NOT NULL,
 	[test_binary_16] BINARY(16) NOT NULL,
+	[test_money_1] MONEY NOT NULL,
+	[test_money_2] MONEY NOT NULL,
+	[test_money_3] MONEY NOT NULL,
+	[test_money_4] MONEY NOT NULL
  CONSTRAINT [PK_` + tableName + `_id] PRIMARY KEY CLUSTERED
 (
 	[id] ASC
