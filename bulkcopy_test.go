@@ -89,6 +89,7 @@ func TestBulkcopy(t *testing.T) {
 		{"test_money_2", math.MaxInt64, []byte("922337203685477.5807")},
 		{"test_money_3", math.MinInt64, []byte("-922337203685477.5808")},
 		{"test_money_4", 0, []byte("0.0000")},
+		{"test_money_n_5", nil, nil},
 	}
 
 	columns := make([]string, len(testValues))
@@ -273,7 +274,12 @@ func setupTable(ctx context.Context, t *testing.T, conn *sql.Conn, tableName str
 	[test_money_1] MONEY NOT NULL,
 	[test_money_2] MONEY NOT NULL,
 	[test_money_3] MONEY NOT NULL,
-	[test_money_4] MONEY NOT NULL
+	[test_money_4] MONEY NOT NULL,
+	[test_money_n_1] MONEY NULL,
+	[test_money_n_2] MONEY NULL,
+	[test_money_n_3] MONEY NULL,
+	[test_money_n_4] MONEY NULL,
+	[test_money_n_5] MONEY NULL
  CONSTRAINT [PK_` + tableName + `_id] PRIMARY KEY CLUSTERED 
 (
 	[id] ASC
