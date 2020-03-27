@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"cloud.google.com/go/civil"
+	"github.com/golang-sql/civil"
 )
 
 func TestSessionInitSQL(t *testing.T) {
@@ -185,5 +185,67 @@ select
 	}
 	if want := "2006-01-02 22:04:05.0000000 -07:00"; dto != want {
 		t.Errorf(`want %q got %q`, want, dto)
+	}
+}
+
+func TestReturnStatusWithQuery(t *testing.T) {
+	conn := open(t)
+	defer conn.Close()
+
+	_, err := conn.Exec("if object_id('retstatus') is not null drop proc retstatus;")
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = conn.Exec("create procedure retstatus as begin select 'value' return 22 end")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var rs ReturnStatus
+	rows, err := conn.Query("retstatus", &rs)
+	conn.Exec("drop proc retstatus;")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var str string
+	for rows.Next() {
+		err = rows.Scan(&str)
+		if str != "value" {
+			t.Errorf("expected str=value, got %s", str)
+		}
+	}
+	if rs != 22 {
+		t.Errorf("expected status=2, got %d", rs)
+	}
+}
+
+func TestIdentity(t *testing.T) {
+	conn := open(t)
+	defer conn.Close()
+
+	tx, err := conn.Begin()
+	if err != nil {
+		t.Fatal("Begin tran failed", err)
+	}
+	defer tx.Rollback()
+
+	res, err := tx.Exec("create table #foo (bar int identity, baz int unique)")
+	if err != nil {
+		t.Fatal("create table failed")
+	}
+
+	res, err = tx.Exec("insert into #foo (baz) values (1)")
+	if err != nil {
+		t.Fatal("insert failed")
+	}
+	n, err := res.LastInsertId()
+	expErr := "LastInsertId is not supported. Please use the OUTPUT clause or add `select ID = convert(bigint, SCOPE_IDENTITY())` to the end of your query."
+	if err == nil {
+		t.Fatal("Expected an error from LastInsertId, didn't get an error")
+	} else if err.Error() != expErr {
+		t.Errorf("Expected error %s, got %s", expErr, err.Error())
+	}
+	if n != -1 {
+		t.Error("Expected -1 for identity, got ", n)
 	}
 }
