@@ -616,13 +616,13 @@ loop:
 			break loop
 		case doneStruct:
 			if token.isError() {
-				cancel()
+				// cancel()
 				return nil, s.c.checkBadConn(token.getError())
 			}
 		case ReturnStatus:
 			s.c.setReturnStatus(token)
 		case error:
-			cancel()
+			// cancel()
 			return nil, s.c.checkBadConn(token)
 		}
 	}
