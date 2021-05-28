@@ -98,7 +98,7 @@ func TestBulkcopy(t *testing.T) {
 		{"test_money_n_2", math.MaxInt64, []byte("922337203685477.5807")},
 		{"test_money_n_3", math.MinInt64, []byte("-922337203685477.5808")},
 		{"test_money_n_4", 0, []byte("0.0000")},
-		{"test_money_n_5", nil},
+		{"test_money_n_5", nil, nil},
 	}
 
 	columns := make([]string, len(testValues))
