@@ -60,6 +60,7 @@ END;
 		if err != nil {
 			t.Error(err)
 		}
+		defer rows.Close()
 		// reading first row
 		if !rows.Next() {
 			t.Error("Next returned false")
@@ -174,8 +175,7 @@ END;
 			if err != nil {
 				t.Fatal(err)
 			}
-			var datetime_param DateTime1
-			datetime_param = DateTime1(tin)
+			datetime_param := DateTime1(tin)
 			_, err = db.ExecContext(ctx, sqltextrun,
 				sql.Named("datetime", sql.Out{Dest: &datetime_param}),
 			)
@@ -429,10 +429,10 @@ END;
 	//})
 
 	t.Run("test non null values into nullable", func(t *testing.T) {
-		nullint := sql.NullInt64{10, true}
-		nullfloat := sql.NullFloat64{1.5, true}
-		nullstr := sql.NullString{"hello", true}
-		nullbit := sql.NullBool{true, true}
+		nullint := sql.NullInt64{Int64: 10, Valid: true}
+		nullfloat := sql.NullFloat64{Float64: 1.5, Valid: true}
+		nullstr := sql.NullString{String: "hello", Valid: true}
+		nullbit := sql.NullBool{Bool: true, Valid: true}
 		_, err = db.ExecContext(ctx, sqltextrun,
 			sql.Named("nullint", sql.Out{Dest: &nullint}),
 			sql.Named("nullfloat", sql.Out{Dest: &nullfloat}),
@@ -470,7 +470,7 @@ END;
 			t.Error(err)
 		}
 		expected := []byte{1, 2, 3}
-		if bytes.Compare(cstr, expected) != 0 {
+		if !bytes.Equal(cstr, expected) {
 			t.Errorf("expected [1,2,3], got %v", cstr)
 		}
 	})
@@ -561,6 +561,9 @@ func TestOutputParamWithRows(t *testing.T) {
 			var strrow string
 			for rows.Next() {
 				err = rows.Scan(&strrow)
+				if err != nil {
+					t.Fatal("scan failed", err)
+				}
 			}
 			if bitout != 1 {
 				t.Errorf("expected 1, got %d", bitout)
@@ -947,10 +950,10 @@ with
 					}
 					return
 				}
+				defer rows.Close()
 				for rows.Next() {
 					// Nothing.
 				}
-				rows.Close()
 			})
 		}
 	}
